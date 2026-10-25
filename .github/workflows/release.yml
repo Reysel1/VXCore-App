@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            agent/package-lock.json
+            fiveos-nui/package-lock.json
+
+      - name: Check version
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "package.json is $version but the tag is $GITHUB_REF_NAME"
+            exit 1
+          fi
+
+      - name: Install
+        run: |
+          npm ci
+          npm --prefix agent ci
+          npm --prefix fiveos-nui ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build in-game menu
+        run: npm run nui:build
+
+      - name: Build installer
+        run: npm run desktop:build -- --publish never
+
+      - name: Checksums
+        shell: bash
+        working-directory: dist-desktop
+        run: sha256sum VXCore-Setup-*.exe VXCore-Setup-*.exe.blockmap latest.yml > SHA256SUMS.txt
+
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            dist-desktop/VXCore-Setup-*.exe
+            dist-desktop/latest.yml
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist-desktop/VXCore-Setup-*.exe
+            dist-desktop/VXCore-Setup-*.exe.blockmap
+            dist-desktop/latest.yml
+            dist-desktop/SHA256SUMS.txt

@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            agent/package-lock.json
+            fiveos-nui/package-lock.json
+
+      - name: Install
+        run: |
+          npm ci
+          npm --prefix agent ci
+          npm --prefix fiveos-nui ci
+
+      - name: Audit
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm --prefix agent audit --omit=dev --audit-level=high
+          npm --prefix fiveos-nui audit --omit=dev --audit-level=high
+
+      - name: Translations
+        run: npm run i18n:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: |
+          npm run typecheck
+          npm --prefix agent run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: |
+          npm run build
+          npm --prefix agent run build
+          npm run nui:build

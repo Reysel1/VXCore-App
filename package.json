@@ -1,0 +1,171 @@
+{
+  "name": "vxcore",
+  "version": "0.10.40",
+  "private": true,
+  "description": "Panel de control para servidores FiveM",
+  "license": "MIT",
+  "homepage": "https://github.com/Reysel1/VXCore-App#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Reysel1/VXCore-App.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Reysel1/VXCore-App/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "npm --prefix agent test",
+    "i18n:check": "node scripts/i18n-check.mjs",
+    "nui:build": "npm --prefix fiveos-nui run build",
+    "desktop": "electron desktop/main.js",
+    "cloudflared": "node scripts/fetch-cloudflared.js",
+    "sevenzip": "node scripts/fetch-7zr.js",
+    "desktop:build": "npm run i18n:check && npm run build && npm --prefix agent run build && npm run cloudflared && npm run sevenzip && electron-builder",
+    "desktop:release": "npm run desktop:build && node scripts/publish-updates.js"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.7.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "electron-updater": "^6.8.9",
+    "lucide-react": "^1.28.0",
+    "motion": "^13.1.1",
+    "next": "16.4.3",
+    "next-themes": "^0.4.6",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "shadcn": "^4.16.1",
+    "socket.io-client": "^4.8.3",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "electron": "^43.3.0",
+    "electron-builder": "^26.15.3",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "main": "desktop/main.js",
+  "build": {
+    "appId": "com.vxcore.panel",
+    "productName": "VXCore",
+    "compression": "normal",
+    "directories": {
+      "output": "dist-desktop",
+      "buildResources": "desktop/resources"
+    },
+    "files": [
+      "desktop/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": ".next/standalone",
+        "to": ".next/standalone"
+      },
+      {
+        "from": ".next/standalone/node_modules",
+        "to": ".next/standalone/node_modules"
+      },
+      {
+        "from": ".next/static",
+        "to": ".next/standalone/.next/static"
+      },
+      {
+        "from": "public",
+        "to": ".next/standalone/public"
+      },
+      {
+        "from": "agent/dist",
+        "to": "agent/dist"
+      },
+      {
+        "from": "agent/node_modules",
+        "to": "agent/node_modules",
+        "filter": [
+          "**/*",
+          "!typescript/**",
+          "!@types/**",
+          "!tsx/**",
+          "!esbuild/**",
+          "!.bin/**",
+          "!@typescript/**",
+          "!@esbuild/**"
+        ]
+      },
+      {
+        "from": "agent/package.json",
+        "to": "agent/package.json"
+      },
+      {
+        "from": "vendor/cloudflared",
+        "to": "cloudflared"
+      },
+      {
+        "from": "vendor/7zr",
+        "to": "7zr"
+      },
+      {
+        "from": "vxcore",
+        "to": "vxcore"
+      },
+      {
+        "from": "public/vertex",
+        "to": "public/vertex"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "VXCore-Setup-${version}.${ext}",
+      "icon": "public/vertex/logo-mark.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "generic",
+      "url": "http://127.0.0.1:4000/updates"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Development",
+      "icon": "public/vertex/logo-mark.png"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.developer-tools",
+      "icon": "public/vertex/logo-mark.png"
+    }
+  },
+  "author": "VXCore"
+}

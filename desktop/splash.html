@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VXCore</title>
+    <style>
+      /*
+       * Pantalla de arranque de VXCore.
+       *
+       * Un cuadrado oscuro, la «V» en blanco y el nombre con la versión debajo.
+       * Nada más: es lo primero que se ve al abrir la app y dura unos segundos.
+       *
+       * La entrada es la cuadrícula de puntos que parpadean de magicui
+       * (magicui.design/docs/components/flickering-grid), la misma del fondo de
+       * la bienvenida: los puntos que caen dentro de la «V» se encienden más
+       * que el resto y dibujan el logo con cuadraditos, y encima aparece el logo
+       * nítido. Sale del fondo en vez de aparecer sin más.
+       *
+       * No hay React ni empaquetador: esta ventana se pinta antes de que exista
+       * el panel y no puede depender de nada. Sólo fuentes del sistema, por lo
+       * mismo: una que hubiera que descargar dejaría el arranque esperando a la
+       * red.
+       */
+      :root {
+        color-scheme: dark;
+
+        --ground: #070707;
+        --ink: #fafafa;
+        --muted: rgba(250, 250, 250, 0.42);
+        --faint: rgba(250, 250, 250, 0.28);
+        --hairline: rgba(255, 255, 255, 0.08);
+
+        /* El mismo redondeo que la ventana del panel, para que abrir la app no
+           cambie de forma a mitad. */
+        --radius: 12px;
+
+        --display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+        --mono: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+
+        /* Lado de la «V» en pantalla. La cuadrícula lo lee de aquí para saber
+           dónde dibujarla con puntos. */
+        --logo: 104px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        /* El fondo lo pinta el marco: la ventana es transparente para poder
+           redondear las esquinas también en Windows 10, que no las redondea. */
+        background: transparent;
+        overflow: hidden;
+        -webkit-app-region: drag;
+        user-select: none;
+      }
+
+      /* El marco: todo va dentro y en posición absoluta, para que el redondeo
+         recorte de verdad. */
+      .marco {
+        position: relative;
+        height: 100%;
+        overflow: hidden;
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius);
+        background: var(--ground);
+        color: var(--ink);
+        font-family: var(--display);
+      }
+
+      canvas {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Viñeta: los bordes se apagan, así el cuadrado se lee como una pieza y
+         no como un trozo de algo más grande. */
+      .vineta {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at 50% 46%, transparent 0, transparent 38%, rgba(7, 7, 7, 0.86) 100%);
+      }
+
+      .centro {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        padding-bottom: 18px;
+      }
+
+      .logo {
+        width: var(--logo);
+        height: var(--logo);
+        object-fit: contain;
+        opacity: 0;
+        filter: blur(10px);
+        transform: scale(0.94);
+        transition:
+          opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+          filter 700ms cubic-bezier(0.22, 1, 0.36, 1),
+          transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .logo:not([src]) {
+        display: none;
+      }
+
+      .nombre {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        line-height: 1;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 600ms ease-out,
+          transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .version {
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* El paso del arranque, abajo y en pequeño: está para quien lo busque
+         (una espera larga, un fallo), no para competir con el logo. */
+      .estado {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 24px;
+        color: var(--faint);
+        font-family: var(--mono);
+        font-size: 10.5px;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 500ms ease-out;
+      }
+      .estado .texto {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .puntos {
+        display: flex;
+        gap: 3px;
+      }
+      .puntos span {
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: var(--ink);
+        opacity: 0.18;
+        animation: latido 1.4s ease-in-out infinite;
+      }
+      .puntos span:nth-child(2) { animation-delay: 0.18s; }
+      .puntos span:nth-child(3) { animation-delay: 0.36s; }
+      @keyframes latido {
+        0%, 62%, 100% { opacity: 0.18; }
+        31% { opacity: 0.8; }
+      }
+
+      /* Lo que se enciende al terminar la entrada. */
+      .listo .logo {
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
+      }
+      .listo .nombre {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: 220ms;
+      }
+      .listo .estado {
+        opacity: 1;
+        transition-delay: 500ms;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .logo,
+        .nombre,
+        .estado {
+          transition: none;
+        }
+        .puntos span {
+          animation: none;
+          opacity: 0.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="marco">
+      <canvas aria-hidden="true"></canvas>
+      <div class="vineta"></div>
+
+      <div class="centro">
+        <img class="logo" alt="VXCore" />
+        <div class="nombre"><span>VXCore</span><span class="version"></span></div>
+      </div>
+
+      <div class="estado">
+        <span class="texto" role="status" aria-live="polite">Iniciando</span>
+        <span class="puntos" aria-hidden="true"><span></span><span></span><span></span></span>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        "use strict";
+
+        /** Lo que main.js resuelve y pasa por la query al abrir la ventana. */
+        const params = new URLSearchParams(location.search);
+        const LOGO_URL = params.get("logo") || "";
+        const VERSION = params.get("version") || "";
+
+        const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        const marco = document.querySelector(".marco");
+        const canvas = document.querySelector("canvas");
+        const logo = document.querySelector(".logo");
+        const estado = document.querySelector(".estado .texto");
+        document.querySelector(".version").textContent = VERSION;
+
+        /* ── Cuadrícula que parpadea ──────────────────────────────
+         *
+         * La de magicui: cada cuadrado tiene una opacidad al azar y, en cada
+         * fotograma, una probabilidad (proporcional al tiempo pasado) de
+         * cambiarla. Lo que se añade aquí es la máscara del logo: los cuadrados
+         * que caen dentro de la «V» parpadean mucho más fuerte durante la
+         * entrada, y luego se apagan hasta confundirse con el resto mientras
+         * aparece el logo nítido encima.
+         */
+        const ctx = canvas.getContext("2d");
+        const SQUARE = 3;
+        const GAP = 3;
+        const STEP = SQUARE + GAP;
+        const FONDO = 0.16; // opacidad máxima del resto
+        const MARCA = 0.95; // opacidad máxima de los puntos de la «V» al empezar
+        const PARPADEO = 0.3; // probabilidad de cambio por segundo, como magicui
+
+        /** Cuánto tarda en dibujarse la «V» con puntos antes de aparecer nítida. */
+        const DIBUJO_MS = 1000;
+        /** Lo que tardan los puntos de la «V» en volver al nivel del fondo. */
+        const APAGADO_MS = 900;
+
+        let celdas = new Float32Array(0);
+        let enMarca = new Uint8Array(0);
+        let cols = 0;
+        let filas = 0;
+        let ancho = 0;
+        let alto = 0;
+        let escala = 1;
+        let inicio = 0;
+        let anterior = 0;
+        let frame = 0;
+
+        /** De 0 a 1: cuánto brillan todavía los puntos de la «V». */
+        function brilloMarca(ahora) {
+          if (REDUCED) return 0;
+          const t = ahora - inicio;
+          if (t < DIBUJO_MS) return Math.min(1, t / 160); // entra rápido
+          return Math.max(0, 1 - (t - DIBUJO_MS) / APAGADO_MS);
+        }
+
+        /** Qué celdas caen dentro de la «V», con el logo en su sitio real. */
+        function calcularMascara() {
+          enMarca = new Uint8Array(cols * filas);
+          if (!logo.complete || !logo.naturalWidth) return;
+
+          const caja = logo.getBoundingClientRect();
+          const base = marco.getBoundingClientRect();
+          const x0 = caja.left - base.left;
+          const y0 = caja.top - base.top;
+
+          // El logo pintado en un lienzo del tamaño de la cuadrícula, para leer
+          // su opacidad en el centro de cada celda.
+          const mascara = document.createElement("canvas");
+          mascara.width = cols;
+          mascara.height = filas;
+          const m = mascara.getContext("2d");
+          m.drawImage(logo, x0 / STEP, y0 / STEP, caja.width / STEP, caja.height / STEP);
+          const datos = m.getImageData(0, 0, cols, filas).data;
+          for (let i = 0; i < cols * filas; i++) {
+            if (datos[i * 4 + 3] > 90) enMarca[i] = 1;
+          }
+          // Los de la «V» arrancan ya encendidos: si empezaran al azar como el
+          // resto, la mitad saldría casi apagada y la letra no se leería.
+          for (let i = 0; i < enMarca.length; i++) {
+            if (enMarca[i]) celdas[i] = 0.55 + Math.random() * 0.45;
+          }
+        }
+
+        function medir() {
+          escala = window.devicePixelRatio || 1;
+          ancho = canvas.clientWidth;
+          alto = canvas.clientHeight;
+          canvas.width = Math.round(ancho * escala);
+          canvas.height = Math.round(alto * escala);
+          ctx.setTransform(escala, 0, 0, escala, 0, 0);
+
+          cols = Math.ceil(ancho / STEP);
+          filas = Math.ceil(alto / STEP);
+          celdas = new Float32Array(cols * filas);
+          for (let i = 0; i < celdas.length; i++) celdas[i] = Math.random();
+          calcularMascara();
+        }
+
+        function pintar(ahora) {
+          const brillo = brilloMarca(ahora);
+          ctx.clearRect(0, 0, ancho, alto);
+          for (let y = 0; y < filas; y++) {
+            for (let x = 0; x < cols; x++) {
+              const i = y * cols + x;
+              // En la «V», el techo de opacidad va de MARCA a FONDO según se apaga.
+              const techo = enMarca[i] ? FONDO + (MARCA - FONDO) * brillo : FONDO;
+              ctx.fillStyle = "rgba(255, 255, 255, " + (celdas[i] * techo).toFixed(3) + ")";
+              ctx.fillRect(x * STEP, y * STEP, SQUARE, SQUARE);
+            }
+          }
+        }
+
+        function tick(ahora) {
+          const dt = anterior ? (ahora - anterior) / 1000 : 0;
+          anterior = ahora;
+          const brillo = brilloMarca(ahora);
+          for (let i = 0; i < celdas.length; i++) {
+            // Los de la «V» cambian más a menudo mientras se dibuja: se nota que
+            // está viva, no que es una imagen quieta.
+            const prob = enMarca[i] && brillo > 0 ? PARPADEO * 6 : PARPADEO;
+            if (Math.random() < prob * dt) celdas[i] = enMarca[i] && brillo > 0.5 ? 0.55 + Math.random() * 0.45 : Math.random();
+          }
+          pintar(ahora);
+          frame = requestAnimationFrame(tick);
+        }
+
+        function empezar() {
+          medir();
+          inicio = performance.now();
+
+          if (REDUCED) {
+            // Sin movimiento: la cuadrícula quieta y el logo ya puesto.
+            pintar(inicio);
+            marco.classList.add("listo");
+            return;
+          }
+
+          frame = requestAnimationFrame(tick);
+          setTimeout(() => marco.classList.add("listo"), DIBUJO_MS);
+        }
+
+        window.addEventListener("resize", () => {
+          medir();
+          if (REDUCED) pintar(performance.now());
+        });
+
+        // El logo tiene que estar cargado para saber qué celdas caen dentro de
+        // la «V». Si no llega (ruta rota), la entrada sigue sin dibujo.
+        if (LOGO_URL) {
+          logo.addEventListener("load", empezar, { once: true });
+          logo.addEventListener("error", empezar, { once: true });
+          logo.src = LOGO_URL;
+        } else {
+          empezar();
+        }
+
+        /* ── Puente con el proceso principal ──────────────────────
+         *
+         * main.js llama a esto en cada paso del arranque. Manda también un
+         * porcentaje y un detalle; aquí se usa sólo el título.
+         */
+        window.vxBoot = (state) => {
+          if (state && state.title) estado.textContent = state.title;
+        };
+
+        window.addEventListener("unload", () => cancelAnimationFrame(frame));
+      })();
+    </script>
+  </body>
+</html>

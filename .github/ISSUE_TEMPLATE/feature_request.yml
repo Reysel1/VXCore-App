@@ -1,0 +1,14 @@
+name: Propuesta
+description: Una idea para mejorar VXCore
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qué problema resuelve
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Cómo lo harías

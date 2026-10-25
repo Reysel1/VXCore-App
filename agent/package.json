@@ -1,0 +1,38 @@
+{
+  "name": "vxcore-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agente local de VXCore: controla FXServer, MySQL, Discord y automatizaciones",
+  "license": "MIT",
+  "author": "VXCore",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json --outDir dist --noEmit false",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test src/*.test.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
+    "@types/adm-zip": "^0.5.8",
+    "adm-zip": "^0.6.1",
+    "cors": "^2.8.6",
+    "cross-spawn": "^7.0.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.23.2",
+    "socket.io": "^4.8.3",
+    "systeminformation": "^5.33.1",
+    "ws": "^8.21.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.2",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.23.5",
+    "typescript": "^7.0.2"
+  }
+}

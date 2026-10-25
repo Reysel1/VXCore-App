@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vulnerabilidad de seguridad
+    url: https://github.com/Reysel1/VXCore-App/security/advisories/new
+    about: Infórmala en privado, no en un issue público.
