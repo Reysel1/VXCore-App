@@ -1,7 +1,6 @@
 <div align="center">
 
-<img src="public/vertex/banner.png" alt="VXCore" width="720" />
-
+<img width="1500" height="500" alt="1500x500" src="https://github.com/user-attachments/assets/6bac3d75-5233-416b-9fb7-852dee559344" />
 # VXCore
 
 Panel de control open source para servidores FiveM, RedM y Open77.
