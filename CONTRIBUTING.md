@@ -1,8 +1,8 @@
-# Contribuir
+# Contributing
 
-Gracias por querer mejorar VXCore.
+Thanks for wanting to improve VXCore.
 
-## Preparar el entorno
+## Setting up the environment
 
 ```bash
 npm ci
@@ -12,7 +12,7 @@ npm --prefix agent run dev
 npm run dev
 ```
 
-## Antes de abrir un pull request
+## Before opening a pull request
 
 ```bash
 npm run lint
@@ -22,13 +22,13 @@ npm run i18n:check
 npm run build
 ```
 
-- Un cambio por pull request, con una descripción de qué arregla o añade.
-- Si tocas el control de acceso del agente (`agent/src/access.ts`, guardias de `index.ts`), añade una prueba en `agent/src/*.test.ts`.
-- No subas ficheros de datos del agente (`discord-config.json`, `tunnel.json`…) ni `.env`.
-- Las vulnerabilidades no van por issues: sigue [SECURITY.md](SECURITY.md).
+- One change per pull request, with a description of what it fixes or adds.
+- If you touch the agent's access control (`agent/src/access.ts`, guards in `index.ts`), add a test in `agent/src/*.test.ts`.
+- Don't commit agent data files (`discord-config.json`, `tunnel.json`…) or `.env`.
+- Vulnerabilities don't go through issues: follow [SECURITY.md](SECURITY.md).
 
-## Estilo
+## Style
 
-- TypeScript estricto en el panel y en el agente.
-- Textos de la interfaz en español, envueltos en `t()`, con su traducción en los cinco idiomas.
-- Nombres claros antes que comentarios.
+- Strict TypeScript in the panel and the agent.
+- Interface strings are written in Spanish, wrapped in `t()`, with their translation in all five languages.
+- Clear names over comments.

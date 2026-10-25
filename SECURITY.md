@@ -1,46 +1,46 @@
-# Política de seguridad
+# Security policy
 
-## Versiones con soporte
+## Supported versions
 
-Solo la última versión publicada recibe parches de seguridad. La app de escritorio se actualiza sola.
+Only the latest published version receives security patches. The desktop app updates itself.
 
-| Versión | Soporte |
+| Version | Supported |
 | ------- | ------- |
-| Última release | Sí |
-| Anteriores | No |
+| Latest release | Yes |
+| Older | No |
 
-## Informar de una vulnerabilidad
+## Reporting a vulnerability
 
-No abras un issue público. Usa el aviso privado de GitHub: pestaña **Security → Report a vulnerability** de este repositorio.
+Don't open a public issue. Use GitHub's private advisory: the **Security → Report a vulnerability** tab of this repository.
 
-Incluye, si puedes:
+If you can, include:
 
-- Qué parte afecta: panel, agente, app de escritorio o recurso in-game.
-- Pasos para reproducirlo y qué acceso hace falta (sin sesión, moderador, admin…).
-- Si requiere el acceso remoto encendido o funciona también en local.
+- Which part is affected: panel, agent, desktop app or in-game resource.
+- Steps to reproduce it and what access is required (no session, moderator, admin…).
+- Whether it requires remote access to be enabled or also works locally.
 
-Recibirás respuesta en un plazo de 7 días. Si se confirma, el arreglo sale en una release y se te menciona en las notas, salvo que prefieras lo contrario.
+You'll get a reply within 7 days. If it's confirmed, the fix ships in a release and you're credited in the notes, unless you prefer otherwise.
 
-## Alcance
+## Scope
 
-El agente lanza procesos, lee y escribe ficheros y guarda credenciales de MySQL, Discord y proveedores de IA. Se trata con prioridad máxima cualquier fallo que permita, sin ser el dueño del panel:
+The agent launches processes, reads and writes files, and stores MySQL, Discord and AI provider credentials. Top priority is given to any flaw that allows someone who isn't the panel owner to:
 
-- ejecutar programas o comandos en la máquina del agente,
-- leer o escribir ficheros fuera de los servidores dados de alta,
-- obtener una sesión con más nivel del concedido,
-- leer la consola o los datos del servidor por el acceso remoto sin sesión.
+- run programs or commands on the agent's machine,
+- read or write files outside the registered servers,
+- obtain a session with a higher level than the one granted,
+- read the console or server data through remote access without a session.
 
-## Modelo de confianza
+## Trust model
 
-- **Dueño**: la cuenta de Discord que vinculó el panel desde la propia máquina. Control total.
-- **Admin**: puede editar y arrancar recursos del servidor. Un recurso de FiveM puede ejecutar código en la máquina, así que da este nivel solo a personas de total confianza.
-- **Moderador**: jugadores, sanciones y consulta.
+- **Owner**: the Discord account that linked the panel from the machine itself. Full control.
+- **Admin**: can edit and start server resources. A FiveM resource can run code on the machine, so only give this level to people you fully trust.
+- **Moderator**: players, sanctions and read-only access.
 
-Por defecto el agente solo escucha en `127.0.0.1`. Si lo expones con `HOST=0.0.0.0`, hazlo detrás de HTTPS y con el inicio de sesión de Discord obligatorio.
+By default the agent only listens on `127.0.0.1`. If you expose it with `HOST=0.0.0.0`, do it behind HTTPS and with Discord login required.
 
-## Medidas automáticas
+## Automated measures
 
-- [CodeQL](.github/workflows/codeql.yml) analiza cada push y pull request.
-- [Dependabot](.github/dependabot.yml) revisa dependencias y acciones cada semana.
-- [OpenSSF Scorecard](.github/workflows/scorecard.yml) evalúa las prácticas del repositorio.
-- Las releases incluyen sumas SHA-256 y una atestación de procedencia (`gh attestation verify`).
+- [CodeQL](.github/workflows/codeql.yml) analyzes every push and pull request.
+- [Dependabot](.github/dependabot.yml) checks dependencies and actions every week.
+- [OpenSSF Scorecard](.github/workflows/scorecard.yml) evaluates the repository's practices.
+- Releases include SHA-256 checksums and a provenance attestation (`gh attestation verify`).

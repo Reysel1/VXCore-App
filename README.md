@@ -3,7 +3,7 @@
 <img width="1500" height="500" alt="1500x500" src="https://github.com/user-attachments/assets/6bac3d75-5233-416b-9fb7-852dee559344" />
 # VXCore
 
-Panel de control open source para servidores FiveM, RedM y Open77.
+Open source control panel for FiveM, RedM and Open77 servers.
 
 [![CI](https://github.com/Reysel1/VXCore-App/actions/workflows/ci.yml/badge.svg)](https://github.com/Reysel1/VXCore-App/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/Reysel1/VXCore-App/actions/workflows/codeql.yml/badge.svg)](https://github.com/Reysel1/VXCore-App/actions/workflows/codeql.yml)
@@ -12,47 +12,47 @@ Panel de control open source para servidores FiveM, RedM y Open77.
 
 </div>
 
-## Qué hace
+## What it does
 
-- Arranca, para y reinicia el servidor con consola en vivo, logs y diagnóstico.
-- Crea un servidor desde cero o importa uno existente a partir de su `server.cfg`.
-- Jugadores conectados, historial, identificadores, vista de pantalla y sanciones (ban, kick, warn) que se aplican también al entrar.
-- Recursos: activar, parar, instalar desde GitHub y editar ficheros con un editor integrado.
-- Base de datos MySQL/MariaDB del servidor: tablas, consultas y fichas de jugador.
-- Inicio de sesión con Discord, roles y enlaces de invitación para el staff, con permisos por sección.
-- Automatizaciones, tablero de tareas, changelog conectado a GitHub y anuncios en el juego.
-- Asistente con IA (Anthropic, Ollama o cualquier API compatible con OpenAI) que lee los recursos y propone cambios.
-- Menú in-game para el staff (F5) escrito en React, con los mismos permisos que el panel.
-- Interfaz en español, inglés, portugués, francés y alemán.
-- Aplicación de escritorio para Windows con actualizaciones automáticas.
+- Starts, stops and restarts the server with a live console, logs and diagnostics.
+- Creates a server from scratch or imports an existing one from its `server.cfg`.
+- Connected players, history, identifiers, screen view and sanctions (ban, kick, warn) that are also enforced when players join.
+- Resources: start, stop, install from GitHub and edit files with a built-in editor.
+- The server's MySQL/MariaDB database: tables, queries and player profiles.
+- Discord login, roles and invite links for staff, with per-section permissions.
+- Automations, a task board, a GitHub-connected changelog and in-game announcements.
+- AI assistant (Anthropic, Ollama or any OpenAI-compatible API) that reads your resources and proposes changes.
+- In-game staff menu (F5) written in React, with the same permissions as the panel.
+- Interface in Spanish, English, Portuguese, French and German.
+- Windows desktop app with automatic updates.
 
-## Arquitectura
+## Architecture
 
-| Pieza | Carpeta | Tecnología |
+| Component | Folder | Technology |
 | --- | --- | --- |
 | Panel | `src/` | Next.js 16, React 19, Tailwind |
-| Agente | `agent/` | Node.js, Express 5, Socket.IO |
-| Escritorio | `desktop/` | Electron |
-| Recurso in-game | `vxcore/` | Lua |
-| Menú in-game | `fiveos-nui/` | React + Vite, compilado en `vxcore/source/nui/assets` |
+| Agent | `agent/` | Node.js, Express 5, Socket.IO |
+| Desktop | `desktop/` | Electron |
+| In-game resource | `vxcore/` | Lua |
+| In-game menu | `fiveos-nui/` | React + Vite, built into `vxcore/source/nui/assets` |
 
-El panel no toca el disco ni los procesos: todo pasa por el agente, que corre en la misma máquina que el servidor de juego y escucha solo en `127.0.0.1` salvo que se configure lo contrario.
+The panel never touches the disk or processes directly: everything goes through the agent, which runs on the same machine as the game server and only listens on `127.0.0.1` unless configured otherwise.
 
-## Instalación
+## Installation
 
 ### Windows
 
-Descarga `VXCore-Setup-<versión>.exe` desde [Releases](https://github.com/Reysel1/VXCore-App/releases) y ejecútalo. El instalador incluye el panel, el agente, el recurso in-game y `cloudflared`; no hace falta tener Node instalado.
+Download `VXCore-Setup-<version>.exe` from [Releases](https://github.com/Reysel1/VXCore-App/releases) and run it. The installer includes the panel, the agent, the in-game resource and `cloudflared`; you don't need Node installed.
 
-Cada release publica sus sumas SHA-256 y una atestación de procedencia de GitHub, así que puedes comprobar que el instalador sale de este repositorio:
+Every release publishes its SHA-256 checksums and a GitHub provenance attestation, so you can verify that the installer was built from this repository:
 
 ```bash
-gh attestation verify VXCore-Setup-<versión>.exe --repo Reysel1/VXCore-App
+gh attestation verify VXCore-Setup-<version>.exe --repo Reysel1/VXCore-App
 ```
 
-### Desde el código
+### From source
 
-Requisitos: Node.js 22 o superior.
+Requirements: Node.js 22 or later.
 
 ```bash
 git clone https://github.com/Reysel1/VXCore-App.git
@@ -62,90 +62,90 @@ npm --prefix agent ci
 npm --prefix fiveos-nui ci
 cp agent/.env.example agent/.env
 
-npm --prefix agent run dev   # agente en http://localhost:4000
-npm run dev                  # panel en http://localhost:3000
+npm --prefix agent run dev   # agent at http://localhost:4000
+npm run dev                  # panel at http://localhost:3000
 ```
 
-### Recurso in-game
+### In-game resource
 
-El panel lo instala desde *Ajustes → Agente & In-Game*. A mano: copia `vxcore` a la carpeta `resources` de tu servidor y añade a `server.cfg`:
+The panel installs it from *Settings → Agent & In-Game*. To do it manually, copy `vxcore` into your server's `resources` folder and add this to `server.cfg`:
 
 ```cfg
 ensure vxcore
 set vxcore_agent_url "http://localhost:4000"
 ```
 
-El permiso `vxcore.menu` se concede a `group.admin` al arrancar el recurso. Si cambias el menú, recompílalo con `npm run nui:build`.
+The `vxcore.menu` permission is granted to `group.admin` when the resource starts. If you change the menu, rebuild it with `npm run nui:build`.
 
-## Configuración
+## Configuration
 
-Todo se puede configurar desde el panel. Lo que pongas en `agent/.env` tiene prioridad y queda bloqueado en la interfaz.
+Everything can be configured from the panel. Anything you set in `agent/.env` takes precedence and is locked in the interface.
 
-| Variable | Uso |
+| Variable | Purpose |
 | --- | --- |
-| `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` | Aplicación OAuth2 de Discord |
-| `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID` | Bot y servidor de Discord para roles y estado |
-| `FIVEOS_PUBLIC_URL` | Dirección pública del agente (redirect URI de Discord) |
-| `FIVEOS_ALLOWED_ORIGINS` | Orígenes extra que pueden usar el agente |
-| `HOST`, `PORT` | Dirección y puerto del agente (`127.0.0.1:4000`) |
-| `FIVEOS_GAME_KEY` | Clave para servidores de juego en otra máquina |
-| `FIVEOS_TUNNEL_HOSTNAME`, `FIVEOS_TUNNEL_CREDENTIALS` | Túnel propio de Cloudflare |
-| `FXSERVER_BIN` | Ruta a `FXServer.exe` si no se detecta sola |
+| `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` | Discord OAuth2 application |
+| `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID` | Discord bot and server for roles and status |
+| `FIVEOS_PUBLIC_URL` | Public address of the agent (Discord redirect URI) |
+| `FIVEOS_ALLOWED_ORIGINS` | Extra origins allowed to use the agent |
+| `HOST`, `PORT` | Agent address and port (`127.0.0.1:4000`) |
+| `FIVEOS_GAME_KEY` | Key for game servers running on another machine |
+| `FIVEOS_TUNNEL_HOSTNAME`, `FIVEOS_TUNNEL_CREDENTIALS` | Your own Cloudflare tunnel |
+| `FXSERVER_BIN` | Path to `FXServer.exe` if it isn't detected automatically |
 
-Si el servidor de juego corre en otra máquina, define `FIVEOS_GAME_KEY` en el agente y la misma clave en `server.cfg` con `set vxcore_agent_key "..."`. Usa `set`, no `setr`, para que no llegue a los clientes.
+If the game server runs on another machine, set `FIVEOS_GAME_KEY` on the agent and the same key in `server.cfg` with `set vxcore_agent_key "..."`. Use `set`, not `setr`, so it isn't sent to clients.
 
-## Acceso remoto
+## Remote access
 
-VXCore puede publicar el panel con un túnel de Cloudflare, sin abrir puertos. Necesitas una cuenta gratuita de Cloudflare con un dominio:
+VXCore can expose the panel through a Cloudflare tunnel, without opening any ports. You need a free Cloudflare account with a domain:
 
 ```bash
 cloudflared tunnel login
 cloudflared tunnel create vxcore
-cloudflared tunnel route dns vxcore panel.tudominio.com
+cloudflared tunnel route dns vxcore panel.yourdomain.com
 ```
 
-Después, en *Ajustes → Acceso remoto*, pega el dominio y el contenido del `.json` que ha creado `cloudflared`. El túnel no arranca hasta que hay una cuenta de Discord vinculada y el inicio de sesión es obligatorio.
+Then, in *Settings → Remote access*, paste the domain and the contents of the `.json` file that `cloudflared` created. The tunnel won't start until a Discord account is linked and login is required.
 
-## Seguridad
+## Security
 
-- Sesiones firmadas con HMAC-SHA256 y comparación en tiempo constante, también en el canal en vivo.
-- Control de acceso por nivel (dueño, admin, moderador) y por sección en cada ruta, en el canal en vivo y en el menú in-game.
-- Comprobación de `Origin` y de `Host` contra CSRF y DNS rebinding.
-- Rutas de ficheros limitadas a los servidores dados de alta, sin salir por `..` ni por enlaces simbólicos.
-- Los moderadores nunca reciben el `server.cfg` ni las credenciales de la base de datos.
-- Límite de intentos en el inicio de sesión.
-- Electron con `contextIsolation`, sin `nodeIntegration` y con una superficie de IPC mínima.
-- CodeQL, Dependabot y `npm audit` en cada cambio.
+- Sessions signed with HMAC-SHA256 and constant-time comparison, including on the live channel.
+- Access control by level (owner, admin, moderator) and by section on every route, on the live channel and in the in-game menu.
+- `Origin` and `Host` checks against CSRF and DNS rebinding.
+- File paths restricted to registered servers, with no escaping through `..` or symbolic links.
+- Moderators never receive the `server.cfg` or the database credentials.
+- Login attempt rate limiting.
+- Electron with `contextIsolation`, without `nodeIntegration` and with a minimal IPC surface.
+- CodeQL, Dependabot and `npm audit` on every change.
 
-Para informar de una vulnerabilidad, lee [SECURITY.md](SECURITY.md).
+To report a vulnerability, read [SECURITY.md](SECURITY.md).
 
-## Desarrollo
+## Development
 
-| Comando | Qué hace |
+| Command | What it does |
 | --- | --- |
-| `npm run dev` | Panel en modo desarrollo |
-| `npm --prefix agent run dev` | Agente en modo desarrollo |
+| `npm run dev` | Panel in development mode |
+| `npm --prefix agent run dev` | Agent in development mode |
 | `npm run lint` | ESLint |
-| `npm run typecheck` | Comprobación de tipos del panel |
-| `npm test` | Pruebas del agente |
-| `npm run i18n:check` | Comprueba que todas las traducciones están completas |
-| `npm run build` | Compila el panel |
-| `npm run nui:build` | Compila el menú in-game en `vxcore/source/nui/assets` |
-| `npm run desktop:build` | Genera el instalador de Windows en `dist-desktop/` |
+| `npm run typecheck` | Panel type checking |
+| `npm test` | Agent tests |
+| `npm run i18n:check` | Checks that all translations are complete |
+| `npm run build` | Builds the panel |
+| `npm run nui:build` | Builds the in-game menu into `vxcore/source/nui/assets` |
+| `npm run desktop:build` | Generates the Windows installer in `dist-desktop/` |
 
-Para publicar una versión, sube la versión en `package.json` y crea una etiqueta:
+To publish a release, bump the version in `package.json` and create a tag:
 
 ```bash
 git tag v0.10.41
 git push origin v0.10.41
 ```
 
-El workflow `release` compila el menú in-game y el instalador, genera la atestación de procedencia y lo publica en Releases junto a `latest.yml`, que es lo que lee el actualizador de la app.
+The `release` workflow builds the in-game menu and the installer, generates the provenance attestation and publishes everything to Releases along with `latest.yml`, which is what the app's updater reads.
 
-## Contribuir
+## Contributing
 
-Las contribuciones son bienvenidas. Lee [CONTRIBUTING.md](CONTRIBUTING.md) antes de abrir un pull request.
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
-## Licencia
+## License
 
 [MIT](LICENSE)

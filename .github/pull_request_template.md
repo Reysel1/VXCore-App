@@ -1,6 +1,6 @@
-## Qué cambia
+## What changes
 
-## Cómo se ha probado
+## How it was tested
 
 - [ ] `npm run lint`
 - [ ] `npm run typecheck`
