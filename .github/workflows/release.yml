@@ -55,7 +55,7 @@ jobs:
         working-directory: dist-desktop
         run: sha256sum VXCore-Setup-*.exe VXCore-Setup-*.exe.blockmap latest.yml > SHA256SUMS.txt
 
-      - uses: actions/attest-build-provenance@v2
+      - uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             dist-desktop/VXCore-Setup-*.exe
